@@ -13,8 +13,6 @@ function toCharCode(str) {
     
 }
 const mediascriptCode = `load D:/mediascript/ffmpeg-nodejs-project/klasky_csupo.mp4 #
-volume # 2
-volume # 0
 render # test.mp4`
 function tokenizer(msCode) {
     const lines = msCode.split('\n').filter(line => line.trim() !== '');
