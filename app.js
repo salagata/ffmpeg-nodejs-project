@@ -2,6 +2,7 @@ const fs = require("fs")
 const ffmpeg = require('fluent-ffmpeg');  
 const path = require('path');
 
+
 function toCharCode(str) {
     const encoder = new TextEncoder(); // Crear un encoder UTF-8
     const bytes = encoder.encode(str); // Codifica la cadena en bytes UTF-8
@@ -12,13 +13,18 @@ function toCharCode(str) {
     });
     
 }
+// MediaScript Code
 const mediascriptCode = `load D:/mediascript/ffmpeg-nodejs-project/klasky_csupo.mp4 #
 render # test.mp4`
+
+// Tokenizer
 function tokenizer(msCode) {
     const lines = msCode.split('\n').filter(line => line.trim() !== '');
     const tokens = lines.map(l => l.trim().split(" "))
     return tokens
 }
+
+// Primordial Input-Output commands
 function load(pathFile,mediaName) {
     return new Promise((resolve, reject) => {
         fs.copyFile(pathFile,"./workspace/"+mediaName+path.extname(pathFile), (err) => {
@@ -41,6 +47,7 @@ function render(pathName,fileName) {
         });
     })
 }
+// Special command, idk how to describe
 function renameHard(file) {
     return new Promise((resolve,reject) => {
         fs.unlink(file,(err) => {
@@ -56,19 +63,7 @@ function renameHard(file) {
         })
     })
 }
-function volume(pathName,volume) {
-    return new Promise((resolve,reject) => {
-        ffmpeg(pathName).output("./workspace/-1"+path.extname(pathName))
-            .audioFilter(`volume=${volume}`) // Comando Real
-            .on('end', () => {  
-                resolve();
-            })  
-            .on('error', (err) => {  
-                reject('Error: ' + err.message);  
-            })  
-            .run(); 
-    })
-}
+// Workspaces
 function initworkspace() {
     return new Promise((resolve,reject) => {
         fs.mkdir("./workspace",(err) => {
@@ -94,6 +89,21 @@ function clearworkspace() {
     })
 
 }
+// Real Commands
+function volume(pathName,volume) {
+    return new Promise((resolve,reject) => {
+        ffmpeg(pathName).output("./workspace/-1"+path.extname(pathName))
+            .audioFilter(`volume=${volume}`) // Comando Real
+            .on('end', () => {  
+                resolve();
+            })  
+            .on('error', (err) => {  
+                reject('Error: ' + err.message);  
+            })  
+            .run(); 
+    })
+}
+// Main Code
 async function runCode(tokens) {
     const media = {};
     const workspace = {};
