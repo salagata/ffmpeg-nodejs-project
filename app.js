@@ -9,9 +9,8 @@ const { renameHard } = require("./file_handler/renameHard");
 
 // MediaScript Code
 const mediascriptCode = `load D:/mediascript/ffmpeg-nodejs-project/klasky_csupo.mp4 #
-load D:/mediascript/ffmpeg-nodejs-project/kc_reverse.mp4 #2
-reverse #
-volume #2 0
+load D:/mediascript/ffmpeg-nodejs-project/bad_apple.mp4 #2
+reverse #2
 render #2 test.mp4`
 
 // Main Code
