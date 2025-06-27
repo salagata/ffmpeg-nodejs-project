@@ -15,6 +15,7 @@ function toCharCode(str) {
 }
 // MediaScript Code
 const mediascriptCode = `load D:/mediascript/ffmpeg-nodejs-project/klasky_csupo.mp4 #
+reverse #
 render # test.mp4`
 
 // Tokenizer
@@ -103,6 +104,20 @@ function volume(pathName,volume) {
             .run(); 
     })
 }
+function reverse(pathName) {
+    return new Promise((resolve,reject) => {
+        ffmpeg(pathName).output("./workspace/-1"+path.extname(pathName))
+            .videoFilter("reverse")
+            .audioFilter("areverse") 
+            .on('end', () => {  
+                resolve();
+            })  
+            .on('error', (err) => {  
+                reject('Error: ' + err.message);  
+            })  
+            .run(); 
+    })
+}
 // Main Code
 async function runCode(tokens) {
     const media = {};
@@ -121,6 +136,10 @@ async function runCode(tokens) {
                 break
             case "volume":
                 await volume(workspace[token[1]],token[2])
+                await renameHard(workspace[token[1]])
+                break
+            case "reverse":
+                await reverse(workspace[token[1]])
                 await renameHard(workspace[token[1]])
                 break
             case "render":
