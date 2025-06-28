@@ -1,17 +1,17 @@
 const path = require('path');
-const { io } = require("./commands/io");
 const { workspace } = require("./file_handler/workspace");
 const { tokenizer } = require("./misc/tokenizer");
-const { volume } = require("./commands/volume");
-const { reverse } = require("./commands/reverse");
 const { renameHard } = require("./file_handler/renameHard");
 
+const { io } = require("./commands/io");
+const { volume } = require("./commands/volume");
+const { reverse } = require("./commands/reverse");
+const { snip } = require("./commands/snip")
 
 // MediaScript Code
 const mediascriptCode = `load D:/mediascript/ffmpeg-nodejs-project/klasky_csupo.mp4 #
-load D:/mediascript/ffmpeg-nodejs-project/bad_apple.mp4 #2
-reverse #2
-render #2 test.mp4`
+snip # 1.7 2.14
+render # test.mp4`
 
 // Main Code
 async function runCode(tokens) {
@@ -35,6 +35,10 @@ async function runCode(tokens) {
                 break
             case "reverse":
                 await reverse(workspaceFiles[token[1]])
+                await renameHard(workspaceFiles[token[1]])
+                break
+            case "snip":
+                await snip(workspaceFiles[token[1]],token[2],token[3])
                 await renameHard(workspaceFiles[token[1]])
                 break
             case "render":

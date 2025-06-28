@@ -1,7 +1,4 @@
-const fs = require('fs');
-const path = require('path');
 
-const folderPath = './deck';
 
 // fs.readdir(folderPath, (err, files) => {
 //   if (err) {
