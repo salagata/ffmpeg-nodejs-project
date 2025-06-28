@@ -1,16 +1,19 @@
 const path = require('path');
+// File Handler
 const { workspace } = require("./file_handler/workspace");
 const { tokenizer } = require("./misc/tokenizer");
 const { renameHard } = require("./file_handler/renameHard");
-
+// Commands
 const { io } = require("./commands/io");
 const { volume } = require("./commands/volume");
 const { reverse } = require("./commands/reverse");
 const { snip } = require("./commands/snip")
+// Code Generators (if there are)
+const { lastExport, lastExportCustom } = require("./code_generator/last_export")
 
 // MediaScript Code
 const mediascriptCode = `load D:/mediascript/ffmpeg-nodejs-project/klasky_csupo.mp4 #
-snip # 1.7
+${lastExportCustom("#",1)}
 render # test.mp4`
 
 // Main Code
