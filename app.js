@@ -8,14 +8,13 @@ const { io } = require("./commands/io");
 const { volume } = require("./commands/volume");
 const { reverse } = require("./commands/reverse");
 const { snip } = require("./commands/snip");
-const { concat } = require("./commands/concat");
+const { concat, concatmultiple } = require("./commands/concat");
 // Code Generators (if there are)
 // MediaScript Code
 const mediascriptCode = `load D:/mediascript/ffmpeg-nodejs-project/klasky_source.mp4 #
-load D:/mediascript/ffmpeg-nodejs-project/klasky_source.mp4 #2
-concat # #2
-concat # #2
-concat # #2
+load D:/mediascript/ffmpeg-nodejs-project/klasky_source.mp4 #$
+volume #$ 0
+concatmultiple # #$ #
 render # test.mp4`
 
 // Main Code
@@ -48,6 +47,10 @@ async function runCode(tokens) {
                 break
             case "concat":
                 await concat(workspaceFiles[token[1]],workspaceFiles[token[2]])
+                await renameHard(workspaceFiles[token[1]])
+                break
+            case "concatmultiple":
+                await concatmultiple(...token.slice(1).map(t => workspaceFiles[t]))
                 await renameHard(workspaceFiles[token[1]])
                 break
             case "render":

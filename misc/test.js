@@ -1,14 +1,21 @@
 const ffmpeg = require("fluent-ffmpeg")
-ffmpeg("D:/mediascript/ffmpeg-nodejs-project/klasky_source.mp4")
+ffmpeg().input("D:/mediascript/ffmpeg-nodejs-project/klasky_source.mp4")
     .input("D:/mediascript/ffmpeg-nodejs-project/klasky_source_2.mp4")
+    .complexFilter([{
+        filter: 'concat',
+        'options': {
+            n: 2,
+            v: 1,
+            a: 1
+        }
+    }], 'a')
     .on('end', () => {
-        console.log("done")
+        console.log("done");
     })
     .on('error', (err) => {
         console.error('Error: ' + err.message);
     })
-    .mergeToFile("D:/mediascript/ffmpeg-nodejs-project/output/test.mp4");
-
+    .mergeToFile("D:/mediascript/ffmpeg-nodejs-project/klasky_source_3.mp4")
 // fs.readdir(folderPath, (err, files) => {
 //   if (err) {
 //     console.error('Error al leer la carpeta:', err);
