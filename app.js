@@ -10,7 +10,7 @@ const { snip } = require("./commands/snip")
 
 // MediaScript Code
 const mediascriptCode = `load D:/mediascript/ffmpeg-nodejs-project/klasky_csupo.mp4 #
-snip # 1.7 2.14
+snip # 1.7
 render # test.mp4`
 
 // Main Code
@@ -38,7 +38,7 @@ async function runCode(tokens) {
                 await renameHard(workspaceFiles[token[1]])
                 break
             case "snip":
-                await snip(workspaceFiles[token[1]],token[2],token[3])
+                await snip(workspaceFiles[token[1]],token[2],token?.[3])
                 await renameHard(workspaceFiles[token[1]])
                 break
             case "render":
