@@ -5,7 +5,7 @@ const { hhmmss2seconds } = require("../misc/hhmmss2seconds");
 function snip(pathName,start,end) {
     const ss = hhmmss2seconds(start)
     return new Promise((resolve, reject) => {
-        if(typeof end == "undefined") {
+        if(end == undefined) {
             ffmpeg(pathName).output("./workspace/-1" + path.extname(pathName))
                 .setStartTime(ss)
                 .on('end', () => {

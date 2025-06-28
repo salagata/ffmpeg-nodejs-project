@@ -7,13 +7,15 @@ const { renameHard } = require("./file_handler/renameHard");
 const { io } = require("./commands/io");
 const { volume } = require("./commands/volume");
 const { reverse } = require("./commands/reverse");
-const { snip } = require("./commands/snip")
+const { snip } = require("./commands/snip");
+const { concat } = require("./commands/concat");
 // Code Generators (if there are)
-const { lastExport, lastExportCustom } = require("./code_generator/last_export")
-
 // MediaScript Code
-const mediascriptCode = `load D:/mediascript/ffmpeg-nodejs-project/klasky_csupo.mp4 #
-${lastExportCustom("#",1)}
+const mediascriptCode = `load D:/mediascript/ffmpeg-nodejs-project/klasky_source.mp4 #
+load D:/mediascript/ffmpeg-nodejs-project/klasky_source.mp4 #2
+concat # #2
+concat # #2
+concat # #2
 render # test.mp4`
 
 // Main Code
@@ -42,6 +44,10 @@ async function runCode(tokens) {
                 break
             case "snip":
                 await snip(workspaceFiles[token[1]],token[2],token?.[3])
+                await renameHard(workspaceFiles[token[1]])
+                break
+            case "concat":
+                await concat(workspaceFiles[token[1]],workspaceFiles[token[2]])
                 await renameHard(workspaceFiles[token[1]])
                 break
             case "render":
