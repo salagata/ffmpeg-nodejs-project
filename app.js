@@ -3,6 +3,11 @@ const path = require('path');
 const { workspace } = require("./file_handler/workspace");
 const { tokenizer } = require("./misc/tokenizer");
 const { renameHard } = require("./file_handler/renameHard");
+// Warnings
+const timeoutWarning = setTimeout(() => {
+    console.warn(`MediaScript is taking longer than 30 seconds
+This won't work in NotSoBot`)
+},30000)
 // Commands
 const { io } = require("./commands/io");
 const { volume } = require("./commands/volume");
@@ -13,19 +18,23 @@ const { join } = require("./commands/join");
 // Code Generators (if there are)
 // MediaScript Code
 const mediascriptCode = `load D:/mediascript/ffmpeg-nodejs-project/klasky_csupo.mp4 #
-snip # 0:40 0:47
+snip # 1.7 2.1
+clone # #2
+volume #2 0
+concat # #2
 render # test.mp4`
 
 
 // Main Code
-async function runCode(tokens) {
+async function runCode(tokens,srcCode) {
     try {
         const media = {};
         const workspaceFiles = {};
         const mediaIndex = [];
         const variables = {};
-        await workspace.initWorkspace()
-        for (const token of tokens) {
+        await workspace.initWorkspace();
+        for (let i = 0; i < tokens.length; i++) {
+            const token = tokens[i]
             const command = token[0];
             switch (command) {
                 case "load":
@@ -63,14 +72,27 @@ async function runCode(tokens) {
                     await io.render(workspaceFiles[token[1]],token?.[2] ?? path.basename(oldPath))
                     await workspace.clearWorkspace()
                     return {media, variables};
+                case "clone":
+                    // clone # #2
+                    media[token[2]] = workspaceFiles[token[1]];
+                    mediaIndex.push(token[2]);
+                    workspaceFiles[token[2]] = "./workspace/"+mediaIndex.indexOf(token[2])+path.extname(workspaceFiles[token[1]])
+                    await io.load(workspaceFiles[token[1]],mediaIndex.indexOf(token[2]));
+                    break
+                default:
+                    throw new SyntaxError(`${srcCode.split("\n").filter(line => line.trim() !== '')[i]}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Unknown command at line ${i}`)
             }
         }
     } catch (error) {
         await workspace.clearWorkspace();
         console.error("Error:" + error)
+    } finally {
+        clearTimeout(timeoutWarning)
     }
 }
-runCode(tokenizer(mediascriptCode));
+runCode(tokenizer(mediascriptCode),mediascriptCode);
 /*
 // Path to the input file  
 const inputFilePath = "D:/mediascript/ffmpeg-nodejs-project/klasky_csupo.mp4";  
