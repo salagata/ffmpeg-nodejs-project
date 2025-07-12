@@ -4,10 +4,6 @@ const { workspace } = require("./file_handler/workspace");
 const { tokenizer } = require("./misc/tokenizer");
 const { renameHard } = require("./file_handler/renameHard");
 // Warnings
-const timeoutWarning = setTimeout(() => {
-    console.warn(`MediaScript is taking longer than 30 seconds
-This won't work in NotSoBot`)
-},30000)
 // Commands
 const { io } = require("./commands/io");
 const { volume } = require("./commands/volume");
@@ -15,13 +11,12 @@ const { reverse } = require("./commands/reverse");
 const { snip } = require("./commands/snip");
 const { concat, concatmultiple } = require("./commands/concat");
 const { join } = require("./commands/join");
+const { repeat, repeatDuration } = require("./commands/repeat");
 // Code Generators (if there are)
 // MediaScript Code
 const mediascriptCode = `load D:/mediascript/ffmpeg-nodejs-project/klasky_csupo.mp4 #
 snip # 1.7 2.1
-clone # #2
-volume #2 0
-concat # #2
+repeatduration # 2
 render # test.mp4`
 
 
@@ -32,6 +27,10 @@ async function runCode(tokens,srcCode) {
         const workspaceFiles = {};
         const mediaIndex = [];
         const variables = {};
+        const timeoutWarning = setTimeout(() => {
+            console.warn(`MediaScript is taking longer than 30 seconds
+        This won't work in NotSoBot`)
+        },30000)
         await workspace.initWorkspace();
         for (let i = 0; i < tokens.length; i++) {
             const token = tokens[i]
@@ -78,6 +77,14 @@ async function runCode(tokens,srcCode) {
                     mediaIndex.push(token[2]);
                     workspaceFiles[token[2]] = "./workspace/"+mediaIndex.indexOf(token[2])+path.extname(workspaceFiles[token[1]])
                     await io.load(workspaceFiles[token[1]],mediaIndex.indexOf(token[2]));
+                    break
+                case "repeat":
+                    await repeat(workspaceFiles[token[1]],token[2])
+                    await renameHard(workspaceFiles[token[1]])
+                    break
+                case "repeatduration":
+                    await repeatDuration(workspaceFiles[token[1]],token[2])
+                    await renameHard(workspaceFiles[token[1]])
                     break
                 default:
                     throw new SyntaxError(`${srcCode.split("\n").filter(line => line.trim() !== '')[i]}
