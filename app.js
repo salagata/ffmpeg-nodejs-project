@@ -15,22 +15,21 @@ const { repeat, repeatDuration } = require("./commands/repeat");
 // Code Generators (if there are)
 // MediaScript Code
 const mediascriptCode = `load D:/mediascript/ffmpeg-nodejs-project/klasky_csupo.mp4 #
-snip # 1.7 2.1
-repeatduration # 2
+volume # 1
 render # test.mp4`
 
 
 // Main Code
 async function runCode(tokens,srcCode) {
+    const timeoutWarning = setTimeout(() => {
+        console.warn(`MediaScript is taking longer than 30 seconds
+    This won't work in NotSoBot`)
+    },30000)
     try {
         const media = {};
         const workspaceFiles = {};
         const mediaIndex = [];
         const variables = {};
-        const timeoutWarning = setTimeout(() => {
-            console.warn(`MediaScript is taking longer than 30 seconds
-        This won't work in NotSoBot`)
-        },30000)
         await workspace.initWorkspace();
         for (let i = 0; i < tokens.length; i++) {
             const token = tokens[i]
@@ -38,9 +37,14 @@ async function runCode(tokens,srcCode) {
             switch (command) {
                 case "load":
                     media[token[2]] = token[1];
-                    mediaIndex.push(token[2]);
-                    workspaceFiles[token[2]] = "./workspace/"+mediaIndex.indexOf(token[2])+path.extname(token[1])
-                    await io.load(token[1],mediaIndex.indexOf(token[2]));
+                    if(!mediaIndex.includes(token[2])) {
+                        mediaIndex.push(token[2]);
+                        workspaceFiles[token[2]] = "./workspace/"+mediaIndex.indexOf(token[2])+path.extname(token[1])
+                        await io.load(token[1],mediaIndex.indexOf(token[2]));
+                    } else {
+                        workspaceFiles[token[2]] = "./workspace/"+mediaIndex.indexOf(token[2])+path.extname(token[1])
+                        await io.load(token[1],mediaIndex.indexOf(token[2]));
+                    }
                     break
                 case "volume":
                     await volume(workspaceFiles[token[1]],token[2])
