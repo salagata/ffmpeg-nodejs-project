@@ -15,7 +15,7 @@ const { repeat, repeatDuration } = require("./commands/repeat");
 // Code Generators (if there are)
 // MediaScript Code
 const mediascriptCode = `load D:/mediascript/ffmpeg-nodejs-project/klasky_csupo.mp4 #
-volume # 1
+volume # 0
 render # test.mp4`
 
 
@@ -35,29 +35,35 @@ async function runCode(tokens,srcCode) {
             const token = tokens[i]
             const command = token[0];
             switch (command) {
+                // Input-Output
                 case "load":
                     media[token[2]] = token[1];
                     if(!mediaIndex.includes(token[2])) {
                         mediaIndex.push(token[2]);
-                        workspaceFiles[token[2]] = "./workspace/"+mediaIndex.indexOf(token[2])+path.extname(token[1])
-                        await io.load(token[1],mediaIndex.indexOf(token[2]));
-                    } else {
-                        workspaceFiles[token[2]] = "./workspace/"+mediaIndex.indexOf(token[2])+path.extname(token[1])
-                        await io.load(token[1],mediaIndex.indexOf(token[2]));
                     }
+                    workspaceFiles[token[2]] = path.join("./workspace/",mediaIndex.indexOf(token[2])+path.extname(token[1]))
+                    await io.load(token[1],mediaIndex.indexOf(token[2]));
                     break
+                case "render":
+                    const oldPath = media[token[1]];
+                    await io.render(workspaceFiles[token[1]],token?.[2] ?? path.basename(oldPath));
+                    break;
+                // Volume
                 case "volume":
                     await volume(workspaceFiles[token[1]],token[2])
                     await renameHard(workspaceFiles[token[1]])
                     break
+                // Reverse
                 case "reverse":
                     await reverse(workspaceFiles[token[1]])
                     await renameHard(workspaceFiles[token[1]])
-                    break
+                    break;
+                // Snip
                 case "snip":
                     await snip(workspaceFiles[token[1]],token[2],token?.[3])
                     await renameHard(workspaceFiles[token[1]])
-                    break
+                    break;
+                // Concat
                 case "concat":
                     await concat(workspaceFiles[token[1]],workspaceFiles[token[2]])
                     await renameHard(workspaceFiles[token[1]])
@@ -66,15 +72,12 @@ async function runCode(tokens,srcCode) {
                     await concatmultiple(...token.slice(1).map(t => workspaceFiles[t]))
                     await renameHard(workspaceFiles[token[1]])
                     break
+                // Join
                 case "join":
                     await join(workspaceFiles[token[1]],workspaceFiles[token[2]],token[3])
                     await renameHard(workspaceFiles[token[1]])
                     break
-                case "render":
-                    const oldPath = media[token[1]];
-                    await io.render(workspaceFiles[token[1]],token?.[2] ?? path.basename(oldPath))
-                    await workspace.clearWorkspace()
-                    return {media, variables};
+                // Clone
                 case "clone":
                     // clone # #2
                     media[token[2]] = workspaceFiles[token[1]];
@@ -82,6 +85,7 @@ async function runCode(tokens,srcCode) {
                     workspaceFiles[token[2]] = "./workspace/"+mediaIndex.indexOf(token[2])+path.extname(workspaceFiles[token[1]])
                     await io.load(workspaceFiles[token[1]],mediaIndex.indexOf(token[2]));
                     break
+                // Repeats
                 case "repeat":
                     await repeat(workspaceFiles[token[1]],token[2])
                     await renameHard(workspaceFiles[token[1]])
@@ -90,12 +94,15 @@ async function runCode(tokens,srcCode) {
                     await repeatDuration(workspaceFiles[token[1]],token[2])
                     await renameHard(workspaceFiles[token[1]])
                     break
+                // SyntaxError
                 default:
                     throw new SyntaxError(`${srcCode.split("\n").filter(line => line.trim() !== '')[i]}
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Unknown command at line ${i}`)
             }
         }
+        await workspace.clearWorkspace()
+        return {media,workspaceFiles,mediaIndex,variables}
     } catch (error) {
         await workspace.clearWorkspace();
         console.error("Error:" + error)
@@ -103,7 +110,9 @@ Unknown command at line ${i}`)
         clearTimeout(timeoutWarning)
     }
 }
-runCode(tokenizer(mediascriptCode),mediascriptCode);
+runCode(tokenizer(mediascriptCode),mediascriptCode).then(x => {
+    console.log(x)
+});
 /*
 // Path to the input file  
 const inputFilePath = "D:/mediascript/ffmpeg-nodejs-project/klasky_csupo.mp4";  

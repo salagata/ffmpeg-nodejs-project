@@ -1,10 +1,9 @@
 const fs = require("fs");
 const path = require("path");
-
 // Primordial Input-Output commands
 function load(pathFile, mediaName) {
     return new Promise((resolve, reject) => {
-        fs.copyFile(pathFile, "./workspace/" + mediaName + path.extname(pathFile), (err) => {
+        fs.copyFile(pathFile, path.join("./workspace/",mediaName + path.extname(pathFile)) , (err) => {
             if (err) {
                 reject(err);
                 return;
@@ -16,7 +15,7 @@ function load(pathFile, mediaName) {
 
 function render(pathName, fileName) {
     return new Promise((resolve, reject) => {
-        fs.copyFile(pathName, "./output/" + fileName, (err) => {
+        fs.copyFile(pathName, path.join("./output/",fileName), (err) => {
             if (err) {
                 reject(err);
                 return;
