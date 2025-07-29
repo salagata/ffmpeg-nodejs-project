@@ -1,7 +1,7 @@
 const path = require('path');
 // File Handler
 const { workspace } = require("./file_handler/workspace");
-const { tokenizer } = require("./misc/tokenizer");
+const { tokenizer, evaluate } = require("./misc/tokenizer");
 const { renameHard } = require("./file_handler/renameHard");
 // Warnings
 // Commands
@@ -15,7 +15,8 @@ const { repeat, repeatDuration } = require("./commands/repeat");
 // Code Generators (if there are)
 // MediaScript Code
 const mediascriptCode = `load D:/mediascript/ffmpeg-nodejs-project/klasky_csupo.mp4 #
-volume # 0
+set vidlen 0.44
+snip # 1.7 1.7+vidlen
 render # test.mp4`
 
 
@@ -34,65 +35,74 @@ async function runCode(tokens,srcCode) {
         for (let i = 0; i < tokens.length; i++) {
             const token = tokens[i]
             const command = token[0];
+            let evalToken = token;
             switch (command) {
                 // Input-Output
                 case "load":
-                    media[token[2]] = token[1];
-                    if(!mediaIndex.includes(token[2])) {
-                        mediaIndex.push(token[2]);
+                    media[evalToken[2]] = evalToken[1];
+                    if(!mediaIndex.includes(evalToken[2])) {
+                        mediaIndex.push(evalToken[2]);
                     }
-                    workspaceFiles[token[2]] = path.join("./workspace/",mediaIndex.indexOf(token[2])+path.extname(token[1]))
-                    await io.load(token[1],mediaIndex.indexOf(token[2]));
+                    workspaceFiles[evalToken[2]] = path.join("./workspace/",mediaIndex.indexOf(evalToken[2])+path.extname(evalToken[1]))
+                    await io.load(evalToken[1],mediaIndex.indexOf(evalToken[2]));
                     break
                 case "render":
-                    const oldPath = media[token[1]];
-                    await io.render(workspaceFiles[token[1]],token?.[2] ?? path.basename(oldPath));
+                    const oldPath = media[evalToken[1]];
+                    await io.render(workspaceFiles[evalToken[1]],evalToken?.[2] ?? path.basename(oldPath));
                     break;
                 // Volume
                 case "volume":
-                    await volume(workspaceFiles[token[1]],token[2])
-                    await renameHard(workspaceFiles[token[1]])
+                    evalToken = evaluate(token,variables,[2])
+                    await volume(workspaceFiles[evalToken[1]],evalToken[2])
+                    await renameHard(workspaceFiles[evalToken[1]])
                     break
                 // Reverse
                 case "reverse":
-                    await reverse(workspaceFiles[token[1]])
-                    await renameHard(workspaceFiles[token[1]])
+                    await reverse(workspaceFiles[evalToken[1]])
+                    await renameHard(workspaceFiles[evalToken[1]])
                     break;
                 // Snip
                 case "snip":
-                    await snip(workspaceFiles[token[1]],token[2],token?.[3])
-                    await renameHard(workspaceFiles[token[1]])
+                    evalToken = evaluate(token,variables,[2,3])
+                    await snip(workspaceFiles[evalToken[1]],evalToken[2],evalToken?.[3])
+                    await renameHard(workspaceFiles[evalToken[1]])
                     break;
                 // Concat
                 case "concat":
-                    await concat(workspaceFiles[token[1]],workspaceFiles[token[2]])
-                    await renameHard(workspaceFiles[token[1]])
+                    await concat(workspaceFiles[evalToken[1]],workspaceFiles[evalToken[2]])
+                    await renameHard(workspaceFiles[evalToken[1]])
                     break
                 case "concatmultiple":
-                    await concatmultiple(...token.slice(1).map(t => workspaceFiles[t]))
-                    await renameHard(workspaceFiles[token[1]])
+                    await concatmultiple(...evalToken.slice(1).map(t => workspaceFiles[t]))
+                    await renameHard(workspaceFiles[evalToken[1]])
                     break
                 // Join
                 case "join":
-                    await join(workspaceFiles[token[1]],workspaceFiles[token[2]],token[3])
-                    await renameHard(workspaceFiles[token[1]])
+                    await join(workspaceFiles[evalToken[1]],workspaceFiles[evalToken[2]],evalToken[3])
+                    await renameHard(workspaceFiles[evalToken[1]])
                     break
                 // Clone
                 case "clone":
                     // clone # #2
-                    media[token[2]] = workspaceFiles[token[1]];
-                    mediaIndex.push(token[2]);
-                    workspaceFiles[token[2]] = "./workspace/"+mediaIndex.indexOf(token[2])+path.extname(workspaceFiles[token[1]])
-                    await io.load(workspaceFiles[token[1]],mediaIndex.indexOf(token[2]));
+                    media[evalToken[2]] = workspaceFiles[evalToken[1]];
+                    mediaIndex.push(evalToken[2]);
+                    workspaceFiles[evalToken[2]] = "./workspace/"+mediaIndex.indexOf(evalToken[2])+path.extname(workspaceFiles[evalToken[1]])
+                    await io.load(workspaceFiles[evalToken[1]],mediaIndex.indexOf(evalToken[2]));
                     break
                 // Repeats
                 case "repeat":
-                    await repeat(workspaceFiles[token[1]],token[2])
-                    await renameHard(workspaceFiles[token[1]])
+                    evalToken = evaluate(token,variables,[2])
+                    await repeat(workspaceFiles[evalToken[1]],evalToken[2])
+                    await renameHard(workspaceFiles[evalToken[1]])
                     break
                 case "repeatduration":
-                    await repeatDuration(workspaceFiles[token[1]],token[2])
-                    await renameHard(workspaceFiles[token[1]])
+                    evalToken = evaluate(token,variables,[2])
+                    await repeatDuration(workspaceFiles[evalToken[1]],evalToken[2])
+                    await renameHard(workspaceFiles[evalToken[1]])
+                    break
+                case "set":
+                    evalToken = evaluate(token,variables,[2])
+                    variables[evalToken[1]] = evalToken[2]
                     break
                 // SyntaxError
                 default:

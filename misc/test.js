@@ -1,44 +1,25 @@
-const tokens = [["snip","#","0","#fc?\"--"]];
-const variables = {
-    "#fc":"30"
-}
-const evalParams = {
-    "snip":[2,3]
-}
-const volume = 2
-for (let i = 0; i < tokens.length; i++) {
-    const token = tokens[i];
-    const command = token[0];
-    const evalToken = token.map((t,ii) => {
-        let r;
-        if(ii == 0 || !evalParams[command].includes(ii)) {
-            return t
-        } else {
-            try {
-                let tt = t;
-                for (const variable in variables) {
-                    if (Object.prototype.hasOwnProperty.call(variables, variable)) {
-                        tt = tt.replaceAll(variable,variables[variable]);
-                    }
-                }
-                if(/[a-zA-Z_]+/.test(tt)) {
-                    throw new ReferenceError(`Tried to reference unset variable ${/[a-zA-Z_]+/.exec(tt)} in expression ${tt}`);
-                }
-                r = String(eval(tt));
-                return r
-            } catch(ee) {
-                switch (ee.constructor.name) {
-                    case "ReferenceError":
-                        throw new ReferenceError(ee.message)
-                
-                    default:
-                        throw new Error(`Unable to parse expression: ${t}`)
-                }
-            }
-        }
-    });
-    console.log(evalToken)
-}
+const ffmpeg = require("fluent-ffmpeg")
+ffmpeg.ffprobe("../klasky_csupo.mp4", (err,data) => {
+    if(err) throw err;
+    console.log(data)
+});
+
+// const {evaluate} = require("./tokenizer");
+// const tokens = [["snip","#","0","a+aw"]];
+// const variables = {
+//     "a":"30",
+//     "aw":"50"
+// }
+// const evalParams = {
+//     "snip":[2,3]
+// }
+// const volume = 2
+// for (let i = 0; i < tokens.length; i++) {
+//     const token = tokens[i];
+//     const command = token[0];
+//     const evalToken = evaluate(token,variables,[2,3])
+//     console.log(evalToken)
+// }
 // const ffmpeg = require("fluent-ffmpeg")
 // ffmpeg().input("D:/mediascript/ffmpeg-nodejs-project/klasky_source.mp4")
 //     .input("D:/mediascript/ffmpeg-nodejs-project/klasky_source_2.mp4")

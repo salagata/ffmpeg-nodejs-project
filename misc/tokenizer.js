@@ -50,7 +50,40 @@ Non Closed Quotation mark at line ${index+1}, character ${errorIndex+1}`)
     });
     return tokens;
 }
-
+function evaluate(token,variables,evalParams) {
+    return token.map((t,ii) => {
+        let r;
+        if(ii == 0 || !evalParams.includes(ii)) {
+            return t
+        } else {
+            try {
+                let tt = t;
+                function escapeRegExp(string) {
+                    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                }
+                for (const variable of Object.keys(variables).sort((a, b) => b.length - a.length)) {
+                    if (Object.prototype.hasOwnProperty.call(variables, variable)) {
+                        const escapedVar = escapeRegExp(variable);
+                        tt = tt.replaceAll(new RegExp(`\\b${escapedVar}\\b`, "g"), variables[variable]);
+                    }
+                }
+                if(/[a-zA-Z_]+/.test(tt)) {
+                    throw new ReferenceError(`Tried to reference unset variable ${/[a-zA-Z_]+/.exec(tt)} in expression ${tt}`);
+                }
+                r = String(eval(tt));
+                return r
+            } catch(ee) {
+                switch (ee.constructor.name) {
+                    case "ReferenceError":
+                        throw new ReferenceError(ee.message)
+                
+                    default:
+                        throw new Error(`Unable to parse expression: ${t}`)
+                }
+            }
+        }
+    });
+}
 // // Ejemplos de prueba
 // console.log(tokenizer('com # p1 p2'));
 // console.log(tokenizer('com # p1 p2 "p 3"'));
@@ -67,3 +100,4 @@ Non Closed Quotation mark at line ${index+1}, character ${errorIndex+1}`)
 // }
 
 exports.tokenizer = tokenizer;
+exports.evaluate = evaluate;
